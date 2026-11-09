@@ -352,21 +352,7 @@ display: none;
 </div>
 
 
-<p>No puedo generar ni entregar archivos PDF directamente desde este
-chat (solo texto). Lo que sí puedo hacer es darte el contenido en
-formato <strong>Markdown limpio tipo README.md</strong> listo para
-copiar y pegar, y decirte cómo convertirlo a PDF en 10 segundos.</p>
-<p><strong>Cómo obtener el PDF:</strong> 1. Pega el contenido de abajo
-en un archivo llamado <code>README.md</code> (por ejemplo en RStudio:
-File → New File → Markdown). 2. En RStudio: botón <strong>Knit</strong>
-→ elige <strong>PDF</strong> (requiere tener instalado
-<code>rmarkdown</code> + LaTeX, o
-<code>tinytex::install_tinytex()</code>). 3. Alternativa rápida sin
-LaTeX: pega el Markdown en <a href="https://www.markdowntopdf.com">https://www.markdowntopdf.com</a> o
-en VS Code con la extensión “Markdown PDF”.</p>
-<p>Aquí está el contenido completo, con <code>#</code>, <code>##</code>,
-<code>###</code>, negritas y bloques de código, listo para copiar:</p>
-<hr />
+<p>#READ.ME 9NOV26</p>
 <div id="s_insomnia-microbiota-analysis-in-insomnia" class="section level1">
 <h1>🧬 16s_insomnia: Microbiota Analysis in Insomnia</h1>
 <p>Bienvenido al repositorio oficial del pipeline bioinformático y de
@@ -381,6 +367,8 @@ funcional mediante PICRUSt2.</p>
 <div id="estructura-general-del-proyecto" class="section level2">
 <h2>🏗️ Estructura General del Proyecto</h2>
 <pre class="text"><code>16s_insomnia/
+├── setup_amd_run.sh  (!!!)               # PREPARES THE ENVIRONMENT WHEN RUNNING FIRST TIME IN EITHER LINUX/MAC 
+|                                                      (NO RENV LOCK TO AVOID ISSUES)
 ├── 0_preprocessing/                      # Módulo de preprocesamiento y gestión de metadatos (Qiime2/DADA2)
 ├── 1_meta_analysis/                      # Módulo de análisis estadístico avanzado y machine learning en R
 ├── config/                               # Archivos de configuración central (config.yaml)
@@ -546,10 +534,613 @@ librerías mediante <em>renv</em>, cualquier análisis puede replicarse de
 forma idéntica en distintas arquitecturas (Linux Mint / macOS).</p></li>
 </ol>
 <hr />
-<p><strong>Nota final:</strong> Si al pegarlo en RStudio ves que los
-<code>#</code> y <code>**</code> no se renderizan, guarda el archivo con
-extensión <code>.md</code> (no <code>.txt</code>) y usa la vista “Visual
-Markdown” o Knit a PDF/HTML.</p>
+</div>
+<div id="installation-environment-setup" class="section level2">
+<h2>Installation &amp; Environment Setup</h2>
+<p>This project integrates QIIME 2 and the R package
+<code>phyloseq</code>. To prevent environmental dependency conflicts
+inside the Conda environment, R dependencies must be built natively
+using system headers.</p>
+<div id="prerequisites-linux-system-libraries" class="section level3">
+<h3>1. Prerequisites (Linux System Libraries)</h3>
+<p>Before setting up the environment, you must install the required
+development headers for compiling data transfer and XML manipulation
+packages in Linux:</p>
+<pre class="bash"><code>sudo apt update
+sudo apt install libcurl4-openssl-dev libssl-dev libxml2-dev</code></pre>
+</div>
+<div id="activate-environment" class="section level3">
+<h3>2. Activate Environment</h3>
+<p>Activate your managed QIIME 2 deployment containing your pre-compiled
+dependencies:</p>
+<pre class="bash"><code>conda activate qiime2-amplicon-2024.5</code></pre>
+</div>
+<div id="install-phyloseq-inside-the-environment" class="section level3">
+<h3>3. Install Phyloseq (Inside the Environment)</h3>
+<p>To keep the environment stable, launch the internal R environment
+directly from your terminal session and deploy <code>phyloseq</code>
+using <code>BiocManager</code>:</p>
+<ol style="list-style-type: decimal">
+<li><p>Open the environment-bound R console:</p>
+<pre class="bash"><code>R</code></pre></li>
+<li><p>Run the deployment execution block within the active session:</p>
+<pre class="r"><code>if (!require(&quot;BiocManager&quot;, quietly = TRUE)) install.packages(&quot;BiocManager&quot;)
+BiocManager::install(&quot;phyloseq&quot;)
+q(save=&quot;no&quot;)</code></pre></li>
+</ol>
+</div>
+<div id="verification" class="section level3">
+<h3>4. Verification</h3>
+<p>Verify that the package initializes successfully without throwing
+compilation errors:</p>
+<pre class="bash"><code>Rscript -e &quot;library(phyloseq); cat(&#39;✅ Phyloseq initialization verified!\n&#39;)&quot;</code></pre>
+<hr />
+</div>
+<div id="setup.r" class="section level3">
+<h3><code>00_setup.R</code></h3>
+<ul>
+<li><p><strong>Inputs:</strong></p></li>
+<li><p><code>config/config.yaml</code> (from user configuration
+setup)</p></li>
+<li><p><strong>Outputs:</strong> Loaded global environment configuration
+(<code>cfg</code>), random seed assignment, and shared R library
+environments.</p></li>
+</ul>
+<hr />
+</div>
+<div id="build_phyloseq.r" class="section level3">
+<h3><code>01_build_phyloseq.R</code></h3>
+<ul>
+<li><p><strong>Inputs:</strong></p></li>
+<li><p><code>data/pre_processed/unified/unified_otu_table.tsv</code>
+(from <code>06_merge_cluster_export.sh</code>)</p></li>
+<li><p><code>data/pre_processed/unified/taxonomy.tsv</code> (from
+<code>06_merge_cluster_export.sh</code>)</p></li>
+<li><p><code>data/pre_processed/unified/master_metadata_unified.tsv</code>
+(from <code>06D_build_master_metadata.py</code>)</p></li>
+<li><p><code>config/config.yaml</code> (from user configuration
+setup)</p></li>
+<li><p><strong>Outputs:</strong></p></li>
+<li><p><code>outputs/models/physeq_filtered.rds</code> ⚠️
+<strong>Primary filtered phyloseq object</strong></p></li>
+<li><p><code>outputs/tables/otu_filtered.csv</code></p></li>
+<li><p><code>outputs/tables/tax_filtered.csv</code></p></li>
+<li><p><code>outputs/tables/metadata_filtered.csv</code></p></li>
+</ul>
+<hr />
+</div>
+<div id="alpha_diversity.r-qc-script" class="section level3">
+<h3><code>02_alpha_diversity.R</code> (+ QC script)</h3>
+<ul>
+<li><p><strong>Inputs:</strong></p></li>
+<li><p><code>outputs/models/physeq_filtered.rds</code> (from
+<code>01_build_phyloseq.R</code>)</p></li>
+<li><p><code>config/config.yaml</code> (from user configuration
+setup)</p></li>
+<li><p><strong>Outputs:</strong></p></li>
+<li><p><code>outputs/tables/alpha_diversity.csv</code></p></li>
+<li><p><code>outputs/figures/alpha_shannon_simpson.png</code></p></li>
+<li><p><code>outputs/logs/alpha_diversity_stats.txt</code></p></li>
+</ul>
+<hr />
+</div>
+<div id="beta_diversity_permanova.r-qc-script" class="section level3">
+<h3><code>03_beta_diversity_permanova.R</code> (+ QC script)</h3>
+<ul>
+<li><p><strong>Inputs:</strong></p></li>
+<li><p><code>outputs/models/physeq_filtered.rds</code> (from
+<code>01_build_phyloseq.R</code>)</p></li>
+<li><p><code>config/config.yaml</code> (from user configuration
+setup)</p></li>
+<li><p><strong>Outputs:</strong></p></li>
+<li><p><code>outputs/tables/beta_diversity.csv</code></p></li>
+<li><p><code>outputs/figures/beta_pcoa_nmds.png</code></p></li>
+<li><p><code>outputs/logs/permanova.txt</code></p></li>
+</ul>
+<hr />
+</div>
+<div id="fb_ratio.r-qc-script" class="section level3">
+<h3><code>04_fb_ratio.R</code> (+ QC script)</h3>
+<ul>
+<li><p><strong>Inputs:</strong></p></li>
+<li><p><code>outputs/models/physeq_filtered.rds</code> (from
+<code>01_build_phyloseq.R</code>)</p></li>
+<li><p><code>config/config.yaml</code> (from user configuration
+setup)</p></li>
+<li><p><strong>Outputs:</strong></p></li>
+<li><p><code>outputs/tables/fb_ratio.csv</code></p></li>
+<li><p><code>outputs/figures/fb_ratio.png</code></p></li>
+<li><p><code>outputs/logs/fb_ratio_stats.txt</code></p></li>
+</ul>
+<hr />
+</div>
+<div id="boruta.r-qc-script" class="section level3">
+<h3><code>05_boruta.R</code> (+ QC script)</h3>
+<ul>
+<li><p><strong>Inputs:</strong></p></li>
+<li><p><code>outputs/models/physeq_filtered.rds</code> (from
+<code>01_build_phyloseq.R</code>)</p></li>
+<li><p><code>config/config.yaml</code> (from user configuration
+setup)</p></li>
+<li><p><strong>Outputs:</strong></p></li>
+<li><p><code>outputs/boruta/boruta_model.rds</code></p></li>
+<li><p><code>outputs/boruta/boruta_selected_otu.csv</code></p></li>
+<li><p><code>outputs/boruta/boruta_selected_otus_with_taxonomy.csv</code></p></li>
+<li><p><code>outputs/boruta/boruta_importance_clean.png</code></p></li>
+</ul>
+<hr />
+</div>
+<div id="boruta_pca_heatmap.r-qc-script" class="section level3">
+<h3><code>06_boruta_pca_heatmap.R</code> (+ QC script)</h3>
+<ul>
+<li><p><strong>Inputs:</strong></p></li>
+<li><p><code>outputs/boruta/boruta_selected_otu.csv</code> (from
+<code>05_boruta.R</code>)</p></li>
+<li><p><code>outputs/models/physeq_filtered.rds</code> (from
+<code>01_build_phyloseq.R</code>)</p></li>
+<li><p><code>config/config.yaml</code> (from user configuration
+setup)</p></li>
+<li><p><strong>Outputs:</strong></p></li>
+<li><p><code>outputs/boruta/boruta_pca.png</code></p></li>
+<li><p><code>outputs/boruta/boruta_heatmap_samples.png</code></p></li>
+</ul>
+<hr />
+</div>
+<div id="dbrda_envfit_fix.r-qc-script" class="section level3">
+<h3><code>07_dbrda_envfit_fix.R</code> (+ QC script)</h3>
+<ul>
+<li><p><strong>Inputs:</strong></p></li>
+<li><p><code>outputs/models/physeq_filtered.rds</code> (from
+<code>01_build_phyloseq.R</code>)</p></li>
+<li><p><code>config/config.yaml</code> (from user configuration
+setup)</p></li>
+<li><p><strong>Outputs:</strong></p></li>
+<li><p><code>outputs/dbrda/ordiR2step_model.rds</code></p></li>
+<li><p><code>outputs/dbrda/dbrda_model.rds</code></p></li>
+<li><p><code>outputs/dbrda/dbrda_anova_all.csv</code></p></li>
+<li><p><code>outputs/dbrda/dbrda_anova_margin.csv</code></p></li>
+<li><p><code>outputs/dbrda/dbrda_r2.txt</code></p></li>
+<li><p><code>outputs/dbrda/envfit_significant_otus_with_taxonomy.csv</code></p></li>
+<li><p><code>outputs/dbrda/dbrda_sites.pdf</code></p></li>
+</ul>
+<hr />
+</div>
+<div id="lefse.r-qc-script" class="section level3">
+<h3><code>08_lefse.R</code> (+ QC script)</h3>
+<ul>
+<li><p><strong>Inputs:</strong></p></li>
+<li><p><code>outputs/models/physeq_filtered.rds</code> (from
+<code>01_build_phyloseq.R</code>)</p></li>
+<li><p><code>config/config.yaml</code> (from user configuration
+setup)</p></li>
+<li><p><strong>Outputs:</strong></p></li>
+<li><p><code>outputs/lefse/lefse_result.csv</code></p></li>
+<li><p><code>outputs/lefse/lefse_sig_with_otu.csv</code></p></li>
+<li><p><code>outputs/lefse/lefse_barplot.png</code></p></li>
+</ul>
+<hr />
+</div>
+<div id="maaslin2_taxa.r" class="section level3">
+<h3><code>09_maaslin2_taxa.R</code></h3>
+<ul>
+<li><p><strong>Inputs:</strong></p></li>
+<li><p><code>outputs/models/physeq_filtered.rds</code> (from
+<code>01_build_phyloseq.R</code>)</p></li>
+<li><p><code>config/config.yaml</code> (from user configuration
+setup)</p></li>
+<li><p><strong>Outputs:</strong></p></li>
+<li><p><code>outputs/maaslin2/</code> (MaAsLin2 output
+directory)</p></li>
+<li><p><code>outputs/maaslin2/maaslin2_sig_with_taxonomy.csv</code></p></li>
+</ul>
+<hr />
+</div>
+<div id="a_run_picrust2.sh" class="section level3">
+<h3><code>10A_run_picrust2.sh</code></h3>
+<ul>
+<li><p><strong>Inputs:</strong></p></li>
+<li><p><code>data/pre_processed/unified/unified_rep_seqs.fasta</code>
+(from <code>06_merge_cluster_export.sh</code>)</p></li>
+<li><p><code>data/pre_processed/unified/unified_otu_table.tsv</code> (or
+<code>.biom</code>) (from
+<code>06_merge_cluster_export.sh</code>)</p></li>
+<li><p><code>config/config.yaml</code> (from user configuration
+setup)</p></li>
+<li><p><strong>Outputs:</strong></p></li>
+<li><p><code>outputs/tables/merged_KO_metagenome.tsv</code> ⚠️
+<strong>Predicted unstratified functional profiles</strong></p></li>
+</ul>
+<hr />
+</div>
+<div id="b_function_taxa_ko_cor.r-qc-script" class="section level3">
+<h3><code>10B_function_taxa_ko_cor.R</code> (+ QC script)</h3>
+<ul>
+<li><p><strong>Inputs:</strong></p></li>
+<li><p><code>outputs/tables/merged_KO_metagenome.tsv</code> (from
+<code>10A_run_picrust2.sh</code>)</p></li>
+<li><p><code>outputs/models/physeq_filtered.rds</code> (from
+<code>01_build_phyloseq.R</code>)</p></li>
+<li><p><code>config/config.yaml</code> (from user configuration
+setup)</p></li>
+<li><p><strong>Outputs:</strong></p></li>
+<li><p><code>outputs/function/tables/taxon_ko_cor_all.csv</code></p></li>
+<li><p><code>outputs/function/tables/taxon_ko_edges_filtered.csv</code>
+⚠️ <strong>Significant Spearman taxon-KO correlations</strong></p></li>
+</ul>
+<hr />
+</div>
+<div id="function_chord_edges.r" class="section level3">
+<h3><code>11_function_chord_edges.R</code></h3>
+<ul>
+<li><p><strong>Inputs:</strong></p></li>
+<li><p><code>outputs/function/tables/taxon_ko_edges_filtered.csv</code>
+(from <code>10B_function_taxa_ko_cor.R</code>)</p></li>
+<li><p><code>outputs/models/physeq_filtered.rds</code> (from
+<code>01_build_phyloseq.R</code>)</p></li>
+<li><p><code>config/config.yaml</code> (from user configuration
+setup)</p></li>
+<li><p><strong>Outputs:</strong></p></li>
+<li><p><code>outputs/function/figures/chord_taxon_ko.png</code></p></li>
+<li><p><code>outputs/function/figures/chord_taxon_ko.pdf</code></p></li>
+</ul>
+<hr />
+</div>
+<div id="function_dotplot.r" class="section level3">
+<h3><code>12_function_dotplot.R</code></h3>
+<ul>
+<li><p><strong>Inputs:</strong></p></li>
+<li><p><code>outputs/function/tables/taxon_ko_edges_filtered.csv</code>
+(from <code>10B_function_taxa_ko_cor.R</code>)</p></li>
+<li><p><code>config/config.yaml</code> (from user configuration
+setup)</p></li>
+<li><p><strong>Outputs:</strong></p></li>
+<li><p><code>outputs/function/figures/figure5b_taxon_ko_dotplot.png</code></p></li>
+</ul>
+<hr />
+</div>
+<div id="a_extract_ko_contrib.r-qc-script" class="section level3">
+<h3><code>13a_extract_ko_contrib.R</code> (+ QC script)</h3>
+<ul>
+<li><p><strong>Inputs:</strong></p></li>
+<li><p><code>outputs/models/physeq_filtered.rds</code> (from
+<code>01_build_phyloseq.R</code>)</p></li>
+<li><p><code>outputs/function/tables/taxon_ko_edges_filtered.csv</code>
+(from <code>10B_function_taxa_ko_cor.R</code>)</p></li>
+<li><p><code>outputs/tables/merged_KO_metagenome.tsv</code> (from
+<code>10A_run_picrust2.sh</code>)</p></li>
+<li><p><strong>Outputs:</strong></p></li>
+<li><p><code>outputs/tables/metadata_for_taxa.csv</code></p></li>
+<li><p><code>outputs/tables/picrust_taxonomy_filled.csv</code></p></li>
+<li><p><code>outputs/tables/KO_FC_group.csv</code></p></li>
+<li><p><code>outputs/tables/ko_contrib_filtered.csv</code> ⚠️
+<strong>Filtered per-sample functional contributions</strong></p></li>
+</ul>
+<hr />
+</div>
+<div id="b_function_contribution_diff.r-qc-script" class="section level3">
+<h3><code>13b_function_contribution_diff.R</code> (+ QC script)</h3>
+<ul>
+<li><p><strong>Inputs:</strong></p></li>
+<li><p><code>outputs/tables/ko_contrib_filtered.csv</code> (from
+<code>13a_extract_ko_contrib.R</code>)</p></li>
+<li><p><code>outputs/tables/metadata_for_taxa.csv</code> (from
+<code>13a_extract_ko_contrib.R</code>)</p></li>
+<li><p><code>outputs/tables/KO_FC_group.csv</code> (from
+<code>13a_extract_ko_contrib.R</code>)</p></li>
+<li><p><strong>Outputs:</strong></p></li>
+<li><p><code>outputs/function_contrib/differential_functional_contributions.csv</code></p></li>
+</ul>
+<hr />
+</div>
+<div id="export_ko_list_for_cluego.r" class="section level3">
+<h3><code>14_export_ko_list_for_cluego.R</code></h3>
+<ul>
+<li><p><strong>Inputs:</strong></p></li>
+<li><p><code>outputs/function/tables/taxon_ko_edges_filtered.csv</code>
+(from <code>10B_function_taxa_ko_cor.R</code>)</p></li>
+<li><p><code>config/config.yaml</code> (from user configuration
+setup)</p></li>
+<li><p><strong>Outputs:</strong></p></li>
+<li><p><code>outputs/function_contrib/network/cluego_gene_list_KO.txt</code></p></li>
+</ul>
+<hr />
+</div>
+<div id="function_chord_from_ko_fc.r" class="section level3">
+<h3><code>15_function_chord_from_ko_fc.R</code></h3>
+<ul>
+<li><p><strong>Inputs:</strong></p></li>
+<li><p><code>outputs/tables/KO_FC_group.csv</code> (from
+<code>13a_extract_ko_contrib.R</code>)</p></li>
+<li><p><code>config/config.yaml</code> (from user configuration
+setup)</p></li>
+<li><p><strong>Outputs:</strong></p></li>
+<li><p><code>outputs/function/figures/chord_ko_fc.png</code></p></li>
+</ul>
+<hr />
+</div>
+<div id="run_all.r" class="section level3">
+<h3><code>run_all.R</code></h3>
+<ul>
+<li><strong>Inputs:</strong> Sequential execution queue of all active
+preprocessing and metaanalysis scripts (<code>01</code> through
+<code>15</code>).</li>
+<li><h2 id="outputs-full-runtime-logs-and-complete-unified-outputs-directory-structure."><strong>Outputs:</strong>
+Full runtime logs and complete unified <code>outputs/</code> directory
+structure.</h2></li>
+</ul>
+</div>
+<div id="install_sra_tools.sh" class="section level3">
+<h3><code>00_install_sra_tools.sh</code></h3>
+<ul>
+<li><strong>Inputs:</strong> None (checks system for
+<code>prefetch</code> / <code>fasterq-dump</code>)</li>
+<li><strong>Outputs:</strong> SRA Toolkit installed at
+<code>/usr/local/sra-toolkit/bin</code> (system-level; no repo
+files)</li>
+</ul>
+<hr />
+</div>
+<div id="install_qiime2.sh" class="section level3">
+<h3><code>01_install_qiime2.sh</code></h3>
+<ul>
+<li><strong>Inputs:</strong> None (downloads
+<code>qiime2-amplicon-2024.5_py39-osx-conda.yml</code> from
+data.qiime2.org)</li>
+<li><strong>Outputs:</strong> Conda environment
+<code>qiime2-amplicon-2024.5</code></li>
+</ul>
+<hr />
+</div>
+<div id="download_silva_classifier.sh" class="section level3">
+<h3><code>01_download_silva_classifier.sh</code></h3>
+<ul>
+<li><strong>Inputs:</strong> Official URL
+<code>silva-138-99-nb-classifier.qza</code> (~500 MB)</li>
+<li><strong>Outputs:</strong>
+<ul>
+<li><code>resources/classifiers/silva-138-99-nb-classifier.qza</code> ⚠️
+<strong>critical resource</strong></li>
+</ul></li>
+</ul>
+<hr />
+</div>
+<div id="b_download_study_sras.sh" class="section level3">
+<h3><code>01b_download_study_sras.sh</code></h3>
+<ul>
+<li><strong>Inputs:</strong>
+<code>0_preprocessing/config/sra_projects.tsv</code> (DATASET, PROJECT
+columns)</li>
+<li><strong>Outputs:</strong>
+<ul>
+<li><code>data/raw/{run_id}/*.fastq.gz</code> (compressed FASTQs)</li>
+<li>SRA metadata downloaded via <code>pysradb</code></li>
+</ul></li>
+</ul>
+<hr />
+</div>
+<div id="metadata_qiime2_format.sh" class="section level3">
+<h3><code>02_metadata_qiime2_format.sh</code></h3>
+<ul>
+<li><strong>Inputs:</strong>
+<ul>
+<li><code>0_preprocessing/config/datasets_config.tsv</code></li>
+<li><code>data/raw/{STUDY}/{STUDY}_metadata_detailed.csv</code> (from
+step 01b)</li>
+<li><code>0_preprocessing/utils/02_metadata_qiime2_format_engine.py</code></li>
+</ul></li>
+<li><strong>Outputs:</strong>
+<ul>
+<li><code>data/preprocessed/metadata/{STUDY}_metadata_q2.tsv</code> ⚠️
+<strong>QIIME 2-formatted metadata (with <code>#q2:types</code>
+header)</strong></li>
+</ul></li>
+</ul>
+<hr />
+</div>
+<div id="merge_study_w_downloaded_metadata.py" class="section level3">
+<h3><code>03_merge_study_w_downloaded_metadata.py</code></h3>
+<ul>
+<li><strong>Inputs:</strong>
+<ul>
+<li><code>data/preprocessed/metadata/{STUDY}_metadata_q2.tsv</code></li>
+<li><code>data/raw/{STUDY}/table_s1.csv</code> (supplementary clinical
+data, study-dependent)</li>
+<li><code>0_preprocessing/utils/metadata_q2_enriched_engine.py</code></li>
+</ul></li>
+<li><strong>Outputs:</strong>
+<ul>
+<li><code>data/preprocessed/metadata/{STUDY}_metadata_q2_format_enriched.tsv</code>
+⚠️ <strong>enriched metadata ready for merging</strong></li>
+</ul></li>
+</ul>
+<hr />
+</div>
+<div id="qiime_import_and_trim.sh" class="section level3">
+<h3><code>04_qiime_import_and_trim.sh</code></h3>
+<ul>
+<li><strong>Inputs:</strong>
+<ul>
+<li><code>0_preprocessing/config/datasets_config.tsv</code> (primers,
+truncation params)</li>
+<li><code>data/raw/{STUDY}/*.fastq.gz</code></li>
+</ul></li>
+<li><strong>Outputs:</strong>
+<ul>
+<li><code>data/pre_processed/qiime2_workspace/manifests/{STUDY}_manifest.tsv</code></li>
+<li><code>data/pre_processed/qiime2_workspace/{STUDY}/demux.qza</code></li>
+<li><code>data/pre_processed/qiime2_workspace/{STUDY}/demux_trimmed.qza</code>
+⚠️ <strong>primer-trimmed reads</strong></li>
+</ul></li>
+</ul>
+<hr />
+</div>
+<div id="viz_quality_plot.sh" class="section level3">
+<h3><code>04_viz_quality_plot.sh</code></h3>
+<ul>
+<li><strong>Inputs:</strong>
+<ul>
+<li><code>data/pre_processed/qiime2_workspace/{STUDY}/demux_trimmed.qza</code></li>
+</ul></li>
+<li><strong>Outputs:</strong>
+<ul>
+<li><code>data/pre_processed/qiime2_workspace/{STUDY}/demux_trimmed.qzv</code>
+(quality visualization)</li>
+</ul></li>
+</ul>
+<hr />
+</div>
+<div id="dada2_denoise_datasets.sh" class="section level3">
+<h3><code>05_dada2_denoise_datasets.sh</code></h3>
+<ul>
+<li><strong>Inputs:</strong>
+<ul>
+<li><code>0_preprocessing/config/datasets_config.tsv</code> (truncation
+lengths, paired/single flag)</li>
+<li><code>data/pre_processed/qiime2_workspace/{STUDY}/demux_trimmed.qza</code></li>
+</ul></li>
+<li><strong>Outputs (per study):</strong>
+<ul>
+<li><code>{STUDY}/table.qza</code> ⚠️ <strong>feature
+table</strong></li>
+<li><code>{STUDY}/rep_seqs.qza</code> ⚠️ <strong>representative
+sequences</strong></li>
+<li><code>{STUDY}/denoising_stats.qza</code></li>
+</ul></li>
+</ul>
+<hr />
+</div>
+<div id="b_visualize_denoise_stats.sh" class="section level3">
+<h3><code>05b_visualize_denoise_stats.sh</code></h3>
+<ul>
+<li><strong>Inputs:</strong>
+<ul>
+<li><code>0_preprocessing/config/datasets_config.tsv</code></li>
+<li><code>data/pre_processed/metadata/{STUDY}_metadata_q2.tsv</code></li>
+<li><code>{STUDY}/denoising_stats.qza</code>,
+<code>{STUDY}/table.qza</code>, <code>{STUDY}/rep_seqs.qza</code></li>
+</ul></li>
+<li><strong>Outputs:</strong>
+<ul>
+<li><code>{STUDY}/denoising_stats.qzv</code></li>
+<li><code>{STUDY}/table.qzv</code></li>
+<li><code>{STUDY}/rep_seqs.qzv</code></li>
+</ul></li>
+</ul>
+<hr />
+</div>
+<div id="merge_cluster_export.sh" class="section level3">
+<h3><code>06_merge_cluster_export.sh</code></h3>
+<ul>
+<li><strong>Inputs:</strong>
+<ul>
+<li><code>0_preprocessing/config/datasets_config.tsv</code></li>
+<li><code>resources/classifiers/silva-138-99-nb-classifier.qza</code></li>
+<li><code>qiime2_workspace/{STUDY}/table.qza</code> +
+<code>rep_seqs.qza</code> (all active studies)</li>
+</ul></li>
+<li><strong>Outputs:</strong>
+<ul>
+<li><strong>Internal (QIIME 2 workspace):</strong>
+<ul>
+<li><code>qiime2_workspace/unified/merged_table_raw.qza</code></li>
+<li><code>qiime2_workspace/unified/merged_rep_seqs.qza</code></li>
+<li><code>qiime2_workspace/unified/final_unified_table.qza</code> ⚠️
+<strong>VSEARCH 99% clustered</strong></li>
+<li><code>qiime2_workspace/unified/unified_rep_seqs.qza</code></li>
+<li><code>qiime2_workspace/unified/taxonomy.qza</code></li>
+</ul></li>
+<li><strong>Human-readable export:</strong>
+<ul>
+<li><code>data/pre_processed/unified/unified_otu_table.tsv</code>
+⚠️</li>
+<li><code>data/pre_processed/unified/unified_otu_table.csv</code>
+⚠️</li>
+<li><code>data/pre_processed/unified/unified_rep_seqs.fasta</code>
+⚠️</li>
+<li><code>data/pre_processed/unified/taxonomy.tsv</code> ⚠️</li>
+</ul></li>
+</ul></li>
+</ul>
+<hr />
+</div>
+<div id="b_visualize_unified_table.sh" class="section level3">
+<h3><code>06b_visualize_unified_table.sh</code></h3>
+<ul>
+<li><strong>Inputs:</strong>
+<ul>
+<li><code>qiime2_workspace/unified/final_unified_table.qza</code></li>
+<li><code>qiime2_workspace/unified/unified_rep_seqs.qza</code></li>
+<li><code>qiime2_workspace/unified/taxonomy.qza</code></li>
+</ul></li>
+<li><strong>Outputs:</strong>
+<ul>
+<li><code>qiime2_workspace/unified/final_unified_table.qzv</code></li>
+<li><code>qiime2_workspace/unified/unified_rep_seqs.qzv</code></li>
+<li><code>qiime2_workspace/unified/taxonomy.qzv</code></li>
+</ul></li>
+</ul>
+<hr />
+</div>
+<div id="d_build_master_metadata.py" class="section level3">
+<h3><code>06D_build_master_metadata.py</code></h3>
+<ul>
+<li><strong>Inputs:</strong>
+<ul>
+<li><code>data/preprocessed/metadata/*_metadata_q2_format_enriched.tsv</code>
+(glob)</li>
+</ul></li>
+<li><strong>Outputs:</strong>
+<ul>
+<li><code>data/preprocessed/unified/master_metadata_unified.tsv</code>
+⚠️ <strong>master metadata for R/phyloseq</strong></li>
+</ul></li>
+</ul>
+<hr />
+</div>
+</div>
+<div id="key-hand-off-artifacts-to-1_meta_analysis" class="section level2">
+<h2>Key “hand-off” artifacts to <code>1_meta_analysis/</code></h2>
+<table>
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Artifact</th>
+<th>Produced by</th>
+<th>Consumed by</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>unified_otu_table.tsv</code></td>
+<td><code>06_merge_cluster_export.sh</code></td>
+<td><code>utils_io.R</code> → <code>01_build_phyloseq.R</code></td>
+</tr>
+<tr class="even">
+<td><code>taxonomy.tsv</code></td>
+<td><code>06_merge_cluster_export.sh</code></td>
+<td><code>utils_io.R</code> → <code>01_build_phyloseq.R</code></td>
+</tr>
+<tr class="odd">
+<td><code>unified_rep_seqs.fasta</code></td>
+<td><code>06_merge_cluster_export.sh</code></td>
+<td><code>10A_run_picrust2.sh</code></td>
+</tr>
+<tr class="even">
+<td><code>master_metadata_unified.tsv</code></td>
+<td><code>06D_build_master_metadata.py</code></td>
+<td><code>utils_io.R</code> → <code>01_build_phyloseq.R</code></td>
+</tr>
+<tr class="odd">
+<td><code>merged_KO_metagenome.tsv</code></td>
+<td><code>10A_run_picrust2.sh</code></td>
+<td><code>13a_extract_ko_contrib.R</code></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 
