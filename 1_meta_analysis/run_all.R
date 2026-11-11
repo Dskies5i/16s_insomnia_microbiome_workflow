@@ -3,6 +3,7 @@
 # DESCRIPCIÓN: Ejecución secuencial de todo el pipeline de metaanálisis 16S
 # ENVIRONMENT: conda activate qiime2-amplicon-2024.5
 # USAGE: Rscript 1_meta_analysis/run_all.R
+# WORK DIRECTORY (MAC): cd progra25/16s_insomnia
 # ============================================================
 
 scripts <- c(

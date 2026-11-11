@@ -27,6 +27,26 @@
 # USO: Rscript 1_meta_analysis/08_lefse.R
 # ENVIRONMENT: conda activate qiime2-amplicon-2024.5
 # ============================================================
+# ============================================================
+# NOTA TÉCNICA: MODELO FILTRADO VS. UNFILTERED EN DB-RDA / ENVFIT
+# ============================================================
+# 
+# 1. MODELO FILTRADO (DEFAULT - physeq_filtered.rds):
+#    - Elimina taxones no deseados como 'g__other' y 'Unassigned'[cite: 15].
+#    - Mantiene la consistencia con el resto del pipeline analítico 
+#      (02–06, 08, 09) usando exactamente el mismo "feature universe"[cite: 10].
+#    - Facilita el cruce y validación cruzada entre los hits de envfit 
+#      y los biomarcadores de Boruta o LEfSe[cite: 10].
+#
+# 2. MODELO UNFILTERED (DESACTIVADO - physeq crudo / build_phyloseq()):
+#    - Conserva la totalidad de la comunidad microbiana, incluyendo 
+#      categorías no asignadas y taxones generales 'g__other'[cite: 10].
+#    - Útil para análisis comunitarios globales de ordenación (db-RDA), 
+#      aplicando el filtro de prevalencia (>5%) de forma puramente estadística[cite: 10].
+#    - Crea una divergencia de features frente a Boruta y LEfSe (que usan 
+#      el objeto filtrado), lo que dificulta comparar directamente los resultados[cite: 10].
+# ============================================================
+
 source("1_meta_analysis/00_setup.R")
 source("utils/utils_phyloseq.R")
 source("utils/utils_io.R")
