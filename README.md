@@ -4,7 +4,7 @@
 
 Welcome to the official bioinformatics and meta-analysis pipeline repository for studying the role of the gut microbiome in insomnia. This project replicates and expands upon the methodological design of Park et al. (2026), integrating an end-to-end workflow from raw 16S rRNA amplicon sequencing preprocessing to diversity metrics, machine learning feature selection (Boruta), covariate-adjusted multivariate modeling (MaAsLin2, db-RDA, LEfSe), and PICRUSt2 functional profiling.
 
-> **Executive Summary & Findings:** See [`report/`](report/) for the analysis summary, key statistical/ML findings, and engineering notes.
+> **Executive Summary & Findings:** See [`executive_report/`](executive_report/) for the analysis summary, key statistical/ML findings, and engineering notes.
 
 ---
 
