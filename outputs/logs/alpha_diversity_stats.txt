@@ -1,0 +1,32 @@
+==========================================
+ RESUMEN DE PRUEBAS ESTADÍSTICAS - DIVERSIDAD ALFA
+==========================================
+
+--- Shannon Index (t-test) ---
+
+	Welch Two Sample t-test
+
+data:  Shannon by Group
+t = 2.5071, df = 40.835, p-value = 0.01625
+alternative hypothesis: true difference in means between group Control and group Insomnia is not equal to 0
+95 percent confidence interval:
+ 0.0538830 0.5005843
+sample estimates:
+ mean in group Control mean in group Insomnia 
+              3.530455               3.253221 
+
+
+--- Simpson Index (t-test) ---
+
+	Welch Two Sample t-test
+
+data:  Simpson by Group
+t = 2.3234, df = 62.201, p-value = 0.02344
+alternative hypothesis: true difference in means between group Control and group Insomnia is not equal to 0
+95 percent confidence interval:
+ 0.003415448 0.045489871
+sample estimates:
+ mean in group Control mean in group Insomnia 
+             0.9314994              0.9070467 
+
+==========================================

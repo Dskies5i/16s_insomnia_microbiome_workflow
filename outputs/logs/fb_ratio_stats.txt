@@ -1,0 +1,12 @@
+
+	Welch Two Sample t-test
+
+data:  FB_ratio by Group
+t = 2.7681, df = 27.323, p-value = 0.01
+alternative hypothesis: true difference in means between group Control and group Insomnia is not equal to 0
+95 percent confidence interval:
+ 0.2101335 1.4115355
+sample estimates:
+ mean in group Control mean in group Insomnia 
+              1.952479               1.141644 
+

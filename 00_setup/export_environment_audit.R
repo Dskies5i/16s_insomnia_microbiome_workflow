@@ -1,5 +1,5 @@
 # ==============================================================================
-# NAME: export_environment_audit.R
+# NAME: macbook_export_environment_audit.R
 # DESCRIPTION: Scans project scripts and active system environment to export 
 #              a SINGLE unified audit report inside the 00_setup/ folder.
 # USAGE: Rscript 00_setup/export_environment_audit.R
@@ -13,7 +13,7 @@ cat("====================================================\n\n")
 dir.create("00_setup", showWarnings = FALSE, recursive = TRUE)
 
 # Define the output file path inside 00_setup/
-report_file <- "00_setup/environment_audit_report.txt"
+report_file <- "00_setup/macbook_environment_audit_report.txt"
 con <- file(report_file, open = "write")
 
 # Write Report Header

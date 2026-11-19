@@ -1,0 +1,17 @@
+study_id,library_name,sample_accession,sex,age,tissue,biomaterial_provider,group_detailed,group,BMI,ISI,ISI_cat,SE,GDS_SUM,SAST_SUM,Sample
+chen_2022,A13,SRS15729962,male,65.0,stool,Guangdong Second Provincial General Hospital,Insomnia,Insomnia,NA,NA,NA,NA,NA,NA,SRR22257382
+chen_2022,A2,SRS15729977,female,26.0,stool,Guangdong Second Provincial General Hospital,Insomnia,Insomnia,NA,NA,NA,NA,NA,NA,SRR22257367
+chen_2022,A17,SRS15729976,female,64.0,stool,Guangdong Second Provincial General Hospital,Insomnia,Insomnia,NA,NA,NA,NA,NA,NA,SRR22257368
+chen_2022,A16,SRS15729975,female,35.0,stool,Guangdong Second Provincial General Hospital,Insomnia,Insomnia,NA,NA,NA,NA,NA,NA,SRR22257369
+chen_2022,A15,SRS15729974,female,49.0,stool,Guangdong Second Provincial General Hospital,Insomnia,Insomnia,NA,NA,NA,NA,NA,NA,SRR22257370
+chen_2022,C6,SRS15729973,male,57.0,stool,Guangdong Second Provincial General Hospital,Insomnia,Insomnia,NA,NA,NA,NA,NA,NA,SRR22257371
+chen_2022,A14,SRS15729972,male,35.0,stool,Guangdong Second Provincial General Hospital,Insomnia,Insomnia,NA,NA,NA,NA,NA,NA,SRR22257372
+chen_2022,C4,SRS15729971,female,59.0,stool,Guangdong Second Provincial General Hospital,Insomnia,Insomnia,NA,NA,NA,NA,NA,NA,SRR22257373
+chen_2022,C3,SRS15729970,female,63.0,stool,Guangdong Second Provincial General Hospital,Insomnia,Insomnia,NA,NA,NA,NA,NA,NA,SRR22257374
+chen_2022,C2,SRS15729969,female,39.0,stool,Guangdong Second Provincial General Hospital,Insomnia,Insomnia,NA,NA,NA,NA,NA,NA,SRR22257375
+chen_2022,C1,SRS15729968,male,37.0,stool,Guangdong Second Provincial General Hospital,Insomnia,Insomnia,NA,NA,NA,NA,NA,NA,SRR22257376
+chen_2022,B9,SRS15729967,female,42.0,stool,Guangdong Second Provincial General Hospital,Insomnia,Insomnia,NA,NA,NA,NA,NA,NA,SRR22257377
+chen_2022,B8,SRS15729966,male,49.0,stool,Guangdong Second Provincial General Hospital,Insomnia,Insomnia,NA,NA,NA,NA,NA,NA,SRR22257378
+chen_2022,B7,SRS15729965,female,32.0,stool,Guangdong Second Provincial General Hospital,Insomnia,Insomnia,NA,NA,NA,NA,NA,NA,SRR22257379
+chen_2022,B6,SRS15729964,male,35.0,stool,Guangdong Second Provincial General Hospital,Insomnia,Insomnia,NA,NA,NA,NA,NA,NA,SRR22257380
+chen_2022,B4,SRS15729963,female,49.0,stool,Guangdong Second Provincial General Hospital,Insomnia,Insomnia,NA,NA,NA,NA,NA,NA,SRR22257381

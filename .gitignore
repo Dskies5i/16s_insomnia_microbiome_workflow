@@ -1,38 +1,45 @@
-# 1. Datos crudos y pesados
+# ==============================================================================
+# 1. Raw Data, Workspaces & Heavy External Resources
+# ==============================================================================
 data/raw/
 data/processed/
 data/pre_processed/qiime2_workspace/
-
-# 2. Outputs / Resultados de análisis
-outputs/tables/
-outputs/figures/
-outputs/models/
-outputs/logs/
-outputs/function/
-outputs/boruta/
-outputs/lefse/
-outputs/maaslin2/
-outputs/function_contrib/
-
-# 3. Resultados intermedios pesados de herramientas externas
 picrust2_out/
-
-# 4. Recursos externos pesados (clasificadores SILVA, etc.)
 resources/classifiers/
+*.fastq
+*.fastq.gz
+*.qza
+*.qzv
+*.biom
 
-# 5. Archivos temporales de R / RStudio
+# ==============================================================================
+# 2. Heavy Output Matrices & R Binary Models (Keep PNGs, PDFs, Logs & Light CSVs)
+# ==============================================================================
+# Ignore all R binary objects/models globally
+*.rds
+*.RData
 .Rproj.user
 .Rhistory
-.RData
 .Ruserdata
-.Rds
-*.rds
 
-# 6. renv: Ignoramos solo los binarios locales pesados, PERO PERMITIMOS renv.lock y la estructura base
+# Ignore heavy multi-megabyte intermediate tables inside outputs/
+outputs/tables/merged_KO_metagenome.tsv
+outputs/tables/pred_metagenome_unstrat.tsv*
+outputs/tables/ko_contrib_filtered.csv
+outputs/tables/beta_diversity.csv
+outputs/function/tables/taxon_ko_cor_all.csv
+
+# Ignore raw MaAsLin2 internal dump folders, EXCEPT the final merged taxonomy table
+outputs/maaslin2/*
+!outputs/maaslin2/maaslin2_sig_with_taxonomy.csv
+
+# ==============================================================================
+# 3. Environment & OS Metadata
+# ==============================================================================
+# Ignore heavy local renv packages, but TRACK renv.lock and activation scripts
 renv/library/
 renv/local/
 renv/staging/
 
-# 7. Metadata del sistema operativo
 .DS_Store
 Thumbs.db

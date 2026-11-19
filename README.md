@@ -1,4 +1,4 @@
-#READ.ME 9NOV26
+#READ.ME 12NOV26
 
 # 🧬 16s_insomnia: Microbiota Analysis in Insomnia
 
@@ -10,17 +10,64 @@ Bienvenido al repositorio oficial del pipeline bioinformático y de metaanálisi
 
 ```text
 16s_insomnia/
-├── setup_amd_run.sh  (!!!)               # PREPARES THE ENVIRONMENT WHEN RUNNING FIRST TIME IN EITHER LINUX/MAC 
-|                                                      (NO RENV LOCK TO AVOID ISSUES)
-├── 0_preprocessing/                      # Módulo de preprocesamiento y gestión de metadatos (Qiime2/DADA2)
-├── 1_meta_analysis/                      # Módulo de análisis estadístico avanzado y machine learning en R
-├── config/                               # Archivos de configuración central (config.yaml)
-├── data/                                 # Almacenamiento de datos crudos, preprocesados y unificados
-├── outputs/                              # Resultados generados (tablas, figuras, modelos y logs)
-├── resources/                            # Clasificadores SILVA y recursos externos
-├── utils/                                # Funciones auxiliares de soporte en R (I/O, graficación, phyloseq)
-├── setup_and_run.sh                      # Script maestro de despliegue y sincronización automática
-└── README.md                             # Documentación principal del proyecto
+├── 16s_insomnia.Rproj
+├── config/
+│   └── config.yaml                               <-- Archivo de configuración central[cite: 5]
+│
+├── 0_preprocessing/
+│   ├── preprocessing_README.md
+│   ├── preprocessing_README.html
+│   ├── config/
+│   │   └── datasets_config.tsv                   <-- Dynamic parameters (primers, truncation, layout)
+│   ├── notes/
+│   ├── script_drafts_ideas/                      <-- Drafts and experimental tests
+│   └── scripts/
+│       ├── 00_install_sra_tools.sh               <-- SRA tools installation
+│       ├── 01_download_silva_classifier.sh       <-- SILVA classifier download (Full-Length)
+│       ├── 01_download_study_sras_w_metadata.sh  <-- Raw FASTQ and SRA metadata download
+│       ├── 01_install_qiime2.sh                  <-- QIIME 2 environment setup
+│       ├── 02_metadata_qiime2_format.sh          <-- Base metadata formatting for QIIME 2
+│       ├── 03_merge_study_w_downloaded_metadata.py <-- Enrich and harmonize clinical metadata (ISI, BMI, etc.)
+│       ├── 04_qiime_import_and_trim.sh           <-- FASTQ import and primer removal (Cutadapt)
+│       ├── 04_viz_quality_plot.sh                <-- .qzv generation for quality inspection
+│       ├── 05_dada2_denoise_datasets.sh          <-- Denoising and error correction with DADA2
+│       ├── 05b_visualize_denoise_stats.sh        <-- Statistical summary of DADA2 process
+│       ├── 06_merge_cluster_export.sh            <-- Merge, VSEARCH 99% clustering, SILVA taxonomy, and R export
+│       ├── 06b_visualize_unified_table.sh        <-- Generates summary visualization of unified table (.qzv)
+│       └── 06D_build_master_metadata.py          <-- Builds final master metadata table (master_metadata_unified.tsv)
+│
+├── utils/                                        <-- Funciones auxiliares de R (raíz)
+│   ├── utils_io.R
+│   ├── utils_phyloseq.R
+│   ├── utils_plot.R
+│   └── utils_stats.R
+│
+├── 1_meta_analysis/                              <-- Scripts del pipeline analítico (01 a 15)
+│
+├── data/
+│   ├── raw/                                      <-- Raw FASTQs per study and supplementary tables
+│   └── pre_processed/
+│       ├── metadata/                             <-- Formatted (*_q2.tsv) and enriched metadata
+│       ├── unified/                              <-- Inputs for meta-analysis: unified_otu_table.tsv, 
+│       │                                             taxonomy.tsv, master_metadata_unified.tsv, 
+│       │                                             unified_rep_seqs.fasta
+│       └── qiime2_workspace/
+│
+├── resources/                                    <-- SILVA classifiers and external resources
+│   └── classifiers/
+│
+├── picrust2_out/                                 <-- Carpeta de salida temporal/interna de PICRUSt2
+│
+└── outputs/                                      <-- ¡Resultados oficiales del metaanálisis!
+    ├── tables/
+    ├── models/
+    ├── logs/
+    ├── figures/
+    ├── dbrda/
+    ├── lefse/
+    ├── boruta/
+    └── function/
+
 ```
 
 ---
@@ -586,4 +633,5 @@ Rscript -e "library(phyloseq); cat('✅ Phyloseq initialization verified!\n')"
 | `unified_rep_seqs.fasta` | `06_merge_cluster_export.sh` | `10A_run_picrust2.sh` |
 | `master_metadata_unified.tsv` | `06D_build_master_metadata.py` | `utils_io.R` → `01_build_phyloseq.R` |
 | `merged_KO_metagenome.tsv` | `10A_run_picrust2.sh` | `13a_extract_ko_contrib.R` |
+
 

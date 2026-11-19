@@ -1,0 +1,61 @@
+=== PERMANOVA RESULTS ===
+
+-- Group only --
+Permutation test for adonis under reduced model
+Permutation: free
+Number of permutations: 999
+
+vegan::adonis2(formula = f1, data = metadata, permutations = perm)
+          Df SumOfSqs      R2    F Pr(>F)   
+Model      1    0.851 0.01996 2.79  0.003 **
+Residual 137   41.791 0.98004               
+Total    138   42.642 1.00000               
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+-- Full model --
+Permutation test for adonis under reduced model
+Permutation: free
+Number of permutations: 999
+
+vegan::adonis2(formula = f2, data = metadata, permutations = perm)
+          Df SumOfSqs     R2      F Pr(>F)    
+Model     49   20.856 0.4891 1.7389  0.001 ***
+Residual  89   21.785 0.5109                  
+Total    138   42.642 1.0000                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+-- Terms: covariates then group --
+Permutation test for adonis under reduced model
+Terms added sequentially (first to last)
+Permutation: free
+Number of permutations: 999
+
+vegan::adonis2(formula = f_terms_a, data = metadata, permutations = perm, by = "terms")
+          Df SumOfSqs      R2       F Pr(>F)    
+study_id   2    8.356 0.19596 17.0685  0.001 ***
+sex        1    0.336 0.00787  1.3713  0.100 .  
+age       45   12.004 0.28151  1.0898  0.054 .  
+group      1    0.161 0.00377  0.6560  0.914    
+Residual  89   21.785 0.51090                   
+Total    138   42.642 1.00000                   
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+-- Terms: group then covariates --
+Permutation test for adonis under reduced model
+Terms added sequentially (first to last)
+Permutation: free
+Number of permutations: 999
+
+vegan::adonis2(formula = f_terms_b, data = metadata, permutations = perm, by = "terms")
+          Df SumOfSqs      R2       F Pr(>F)    
+group      1    0.851 0.01996  3.4768  0.001 ***
+study_id   2    7.769 0.18219 15.8688  0.001 ***
+sex        1    0.317 0.00744  1.2958  0.176    
+age       45   11.919 0.27952  1.0821  0.070 .  
+Residual  89   21.785 0.51090                   
+Total    138   42.642 1.00000                   
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
